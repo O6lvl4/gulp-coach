@@ -75,7 +75,7 @@
         <div class="text-[10px] tracking-[0.18em] text-text-mute px-3 pt-3 pb-1">GULPS · 1ごく ≈ 30 mL</div>
         <div class="grid grid-cols-4 gap-2 px-3 pb-3" id="quick-buttons-gulp"></div>
         <form id="custom-form" class="flex gap-2 px-3 pb-3">
-          <input id="custom-amount" type="number" min="1" max="2000" step="10" placeholder="任意 mL"
+          <input id="custom-amount" type="number" inputmode="numeric" min="1" max="2000" placeholder="任意 mL"
                  class="flex-1 bg-panel-2 border border-line-strong rounded-[4px] px-3 h-11 text-text font-mono text-base focus:border-water outline-none" />
           <button type="submit" class="h-11 px-5 rounded-[4px] border border-water text-water hover:bg-water/10">+</button>
         </form>
@@ -152,8 +152,8 @@
           </div>
           <label class="flex flex-col gap-1">
             <span class="text-[10px] tracking-[0.18em] text-text-mute">AMOUNT (mL)</span>
-            <input id="e-volume" type="number" min="1" max="2000" step="10" required
-                   class="bg-panel-2 border border-line-strong rounded-[4px] px-3 h-12 text-text font-mono text-base focus:border-water outline-none" />
+            <input id="e-volume" type="number" inputmode="numeric" min="1" max="2000" required
+                   class="bg-panel-2 border border-line-strong rounded-[4px] px-3 h-12 text-text font-mono text-base focus:border-water outline-none no-spin" />
           </label>
           <div class="flex flex-col gap-1">
             <span class="text-[10px] tracking-[0.18em] text-text-mute">BEVERAGE</span>
