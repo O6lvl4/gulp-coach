@@ -4,10 +4,18 @@
 import type { DomRefs } from "./dom-refs.js";
 import type { DashboardSnapshot } from "../application/use-cases.js";
 import type { HydrationStatus } from "../domain/hydration/status.js";
+import type { CaffeineStatus, CaffeineLevel } from "../domain/caffeine/status.js";
 import type { Profile } from "../domain/profile/profile.js";
 import { sexLabel } from "../domain/profile/sex.js";
 import { Gulp, Milliliter } from "../domain/shared/units.js";
 import type { IntakeEventId } from "../domain/intake/intake-event.js";
+import {
+  type Beverage,
+  allBeverages,
+  beverageMeta,
+  caffeineMgFor,
+  isCaffeinated,
+} from "../domain/intake/beverage.js";
 import { escapeHtml, formatHm, pad2 } from "./format.js";
 
 const QUICK_AMOUNTS_ML = [100, 200, 300, 500] as const;
@@ -26,7 +34,11 @@ export const renderStatusLine = (refs: DomRefs, profile: Profile | null): void =
   refs.statusLine.textContent = `[ ${profile.weight}kg · ${sexLabel(profile.sex)} · ${profile.age}歳 ]`;
 };
 
-const buildButton = (label: string, sub: string, onClick: () => void): HTMLButtonElement => {
+const buildAmountButton = (
+  label: string,
+  sub: string,
+  onClick: () => void,
+): HTMLButtonElement => {
   const btn = document.createElement("button");
   btn.type = "button";
   btn.className =
@@ -48,15 +60,41 @@ export const renderQuickButtons = (
     const ml = Milliliter.unsafe(amount);
     const gulps = Gulp.fromMl(ml);
     refs.quickButtonsMl.appendChild(
-      buildButton(`+${amount}`, `${gulps}ごく`, () => onTap(amount)),
+      buildAmountButton(`+${amount}`, `${gulps}ごく`, () => onTap(amount)),
     );
   }
   refs.quickButtonsGulp.innerHTML = "";
   for (const g of QUICK_AMOUNTS_GULP) {
     const ml = Gulp.toMl(Gulp.unsafe(g));
     refs.quickButtonsGulp.appendChild(
-      buildButton(`+${g}ごく`, `${ml}mL`, () => onTap(ml)),
+      buildAmountButton(`+${g}ごく`, `${ml}mL`, () => onTap(ml)),
     );
+  }
+};
+
+export const renderBeverageTabs = (
+  refs: DomRefs,
+  current: Beverage,
+  onSelect: (b: Beverage) => void,
+): void => {
+  refs.beverageTabs.innerHTML = "";
+  for (const b of allBeverages()) {
+    const meta = beverageMeta(b);
+    const selected = b === current;
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = [
+      "shrink-0 flex flex-col items-center gap-[1px] px-3 py-[6px] rounded-[4px] border min-w-[60px] transition-colors",
+      selected
+        ? "border-water bg-water/10 text-water"
+        : "border-line text-text-dim hover:border-line-strong",
+    ].join(" ");
+    btn.innerHTML = `
+      <span class="text-base leading-none">${meta.emoji}</span>
+      <span class="text-[10px] tracking-[0.05em]">${escapeHtml(meta.label)}</span>
+    `;
+    btn.addEventListener("click", () => onSelect(b));
+    refs.beverageTabs.appendChild(btn);
   }
 };
 
@@ -69,9 +107,11 @@ export const renderDashboard = (
   refs.quick.hidden = false;
   refs.daily.hidden = false;
   refs.log.hidden = false;
+  refs.caffeine.hidden = false;
 
   renderStatus(refs, snap.status);
   renderDaily(refs, snap.status);
+  renderCaffeine(refs, snap.caffeine);
   renderLog(refs, snap, actions);
 };
 
@@ -105,6 +145,35 @@ const renderDaily = (refs: DomRefs, s: HydrationStatus): void => {
   refs.dailyBar.style.width = `${pct}%`;
 };
 
+const CAFFEINE_BAR_COLOR: Record<CaffeineLevel, string> = {
+  ok: "var(--color-water-dim)",
+  moderate: "var(--color-water)",
+  warn: "var(--color-warn)",
+  over: "var(--color-bad)",
+};
+
+const CAFFEINE_META_LABEL: Record<CaffeineLevel, string> = {
+  ok: "OK",
+  moderate: "MODERATE",
+  warn: "WARN",
+  over: "OVER LIMIT",
+};
+
+const renderCaffeine = (refs: DomRefs, c: CaffeineStatus): void => {
+  refs.cafCurrent.textContent = `${c.totalTodayMg} mg`;
+  refs.cafLimit.textContent = `/ ${c.dailyLimitMg} mg`;
+  refs.cafBar.style.width = `${Math.min(100, Math.round(c.progressRatio * 100))}%`;
+  refs.cafBar.style.background = CAFFEINE_BAR_COLOR[c.level];
+  refs.cafMeta.textContent = CAFFEINE_META_LABEL[c.level];
+
+  if (c.lastIntakeAt) {
+    const suffix = c.level === "over" ? " (超過)" : "";
+    refs.cafLast.textContent = `最終摂取 ${formatHm(c.lastIntakeAt)} · 残り ${c.remainingMg}mg${suffix}`;
+  } else {
+    refs.cafLast.textContent = "本日のカフェイン摂取なし";
+  }
+};
+
 const renderLog = (
   refs: DomRefs,
   snap: DashboardSnapshot,
@@ -120,14 +189,20 @@ const renderLog = (
     return;
   }
   for (const e of recent) {
+    const meta = beverageMeta(e.beverage);
     const gulps = Gulp.fromMl(e.volume);
+    const caf = caffeineMgFor(e.beverage, e.volume);
+    const cafText = isCaffeinated(e.beverage) ? ` · ${caf}mg` : "";
     const li = document.createElement("li");
     li.className =
       "grid grid-cols-[auto_1fr_auto] items-center gap-2 px-3 py-2 border-b border-line last:border-b-0 text-[13px] tabular-nums";
     li.innerHTML = `
       <input type="time" value="${pad2(e.at.getHours())}:${pad2(e.at.getMinutes())}"
         class="bg-panel-2 border border-line-strong rounded-[3px] px-2 h-9 text-text-dim font-mono text-[12px] focus:border-water outline-none" />
-      <span class="text-water font-mono font-semibold">+${e.volume} mL <span class="text-text-mute font-normal">≈ ${gulps}ごく</span></span>
+      <span class="text-water font-mono font-semibold">
+        ${meta.emoji} +${e.volume} mL
+        <span class="text-text-mute font-normal">≈ ${gulps}ごく${cafText}</span>
+      </span>
       <button type="button" class="del-btn h-9 w-9 rounded-[3px] border border-line-strong text-text-mute hover:border-bad hover:text-bad" title="削除" aria-label="削除">×</button>
     `;
     const timeInput = li.querySelector<HTMLInputElement>("input[type=time]")!;

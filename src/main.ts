@@ -5,6 +5,7 @@ import "./style.css";
 import { collectDomRefs } from "./presentation/dom-refs.js";
 import {
   hideProfileForm,
+  renderBeverageTabs,
   renderDashboard,
   renderQuickButtons,
   renderStatusLine,
@@ -26,6 +27,7 @@ import { isOk } from "./domain/shared/result.js";
 import { Profile } from "./domain/profile/profile.js";
 import { Sex } from "./domain/profile/sex.js";
 import type { IntakeEventId } from "./domain/intake/intake-event.js";
+import { Beverage } from "./domain/intake/beverage.js";
 
 const deps: Deps = {
   intake: createLocalStorageIntakeRepository(),
@@ -39,10 +41,18 @@ const deps: Deps = {
 
 const refs = collectDomRefs();
 
+let selectedBeverage: Beverage = Beverage.Water;
+
+const drawBeverageTabs = (): void => {
+  renderBeverageTabs(refs, selectedBeverage, (b) => {
+    selectedBeverage = b;
+    drawBeverageTabs();
+  });
+};
+
 const handleTimeChange = async (id: IntakeEventId, hhmm: string): Promise<void> => {
   const [h, m] = hhmm.split(":").map(Number);
   if (Number.isNaN(h) || Number.isNaN(m)) return;
-  // 当日扱いで時刻だけ差し替え (まとめ記録は当日内の補正想定)
   const base = deps.clock();
   base.setHours(h, m, 0, 0);
   await updateEventTime(deps, id, base);
@@ -71,10 +81,11 @@ const refresh = async (): Promise<void> => {
 const handleIntake = async (mL: number): Promise<void> => {
   const v = Milliliter.of(mL);
   if (!isOk(v)) return;
-  await logIntake(deps, v.value);
+  await logIntake(deps, v.value, selectedBeverage);
   await refresh();
 };
 
+drawBeverageTabs();
 renderQuickButtons(refs, (mL) => void handleIntake(mL));
 
 refs.customForm.addEventListener("submit", (e) => {

@@ -2,11 +2,13 @@ import { describe, it, expect } from "vitest";
 import { IntakeLog } from "./intake-log.js";
 import { IntakeEventId, type IntakeEvent } from "./intake-event.js";
 import { Milliliter } from "../shared/units.js";
+import { Beverage } from "./beverage.js";
 
 const ev = (id: string, atIso: string, vol: number): IntakeEvent => ({
   id: IntakeEventId.unsafe(id),
   at: new Date(atIso),
   volume: Milliliter.unsafe(vol),
+  beverage: Beverage.Water,
 });
 
 describe("IntakeLog", () => {

@@ -24,10 +24,18 @@ export const collectDomRefs = () => ({
   statusSub: $("status-sub"),
 
   quick: $("quick"),
+  beverageTabs: $("beverage-tabs"),
   quickButtonsMl: $("quick-buttons-ml"),
   quickButtonsGulp: $("quick-buttons-gulp"),
   customForm: $<HTMLFormElement>("custom-form"),
   customAmount: $<HTMLInputElement>("custom-amount"),
+
+  caffeine: $("caffeine"),
+  cafMeta: $("caf-meta"),
+  cafCurrent: $("caf-current"),
+  cafLimit: $("caf-limit"),
+  cafBar: $("caf-bar"),
+  cafLast: $("caf-last"),
 
   daily: $("daily"),
   dailyPct: $("daily-pct"),

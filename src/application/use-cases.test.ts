@@ -14,6 +14,7 @@ import type {
 } from "./ports.js";
 import { IntakeLog } from "../domain/intake/intake-log.js";
 import { IntakeEventId } from "../domain/intake/intake-event.js";
+import { Beverage } from "../domain/intake/beverage.js";
 import { Profile } from "../domain/profile/profile.js";
 import { Sex } from "../domain/profile/sex.js";
 import { Kilogram, Year, Milliliter } from "../domain/shared/units.js";
@@ -66,12 +67,12 @@ describe("undoLast", () => {
       {
         id: IntakeEventId.unsafe("a"),
         at: new Date("2026-04-24T11:00:00"),
-        volume: Milliliter.unsafe(100),
+        volume: Milliliter.unsafe(100), beverage: Beverage.Water,
       },
       {
         id: IntakeEventId.unsafe("b"),
         at: new Date("2026-04-24T11:30:00"),
-        volume: Milliliter.unsafe(200),
+        volume: Milliliter.unsafe(200), beverage: Beverage.Water,
       },
     ]);
     const intake = inMemoryIntake(initial);
@@ -107,7 +108,7 @@ describe("deleteEvent", () => {
       {
         id: IntakeEventId.unsafe("a"),
         at: new Date("2026-04-24T10:00:00"),
-        volume: Milliliter.unsafe(100),
+        volume: Milliliter.unsafe(100), beverage: Beverage.Water,
       },
     ]);
     const intake = inMemoryIntake(initial);
@@ -122,7 +123,7 @@ describe("updateEventTime", () => {
       {
         id: IntakeEventId.unsafe("a"),
         at: new Date("2026-04-24T10:00:00"),
-        volume: Milliliter.unsafe(100),
+        volume: Milliliter.unsafe(100), beverage: Beverage.Water,
       },
     ]);
     const intake = inMemoryIntake(initial);

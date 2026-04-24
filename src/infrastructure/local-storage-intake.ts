@@ -8,6 +8,7 @@ import {
   IntakeEventId,
   type IntakeEvent,
 } from "../domain/intake/intake-event.js";
+import { Beverage } from "../domain/intake/beverage.js";
 import { Milliliter } from "../domain/shared/units.js";
 
 const KEY = "gulp-coach:intake-log:v1";
@@ -21,7 +22,12 @@ const migrateIfNeeded = (storage: Storage): void => {
   storage.removeItem(LEGACY_KEY);
 };
 
-type StoredEvent = { id: string; at: string; volume: number };
+type StoredEvent = {
+  id: string;
+  at: string;
+  volume: number;
+  beverage?: Beverage;
+};
 type Stored = { events: StoredEvent[] };
 
 export const createLocalStorageIntakeRepository = (
@@ -37,6 +43,8 @@ export const createLocalStorageIntakeRepository = (
         id: IntakeEventId.unsafe(e.id),
         at: new Date(e.at),
         volume: Milliliter.unsafe(e.volume),
+        // beverage 未指定の旧データは水とみなす
+        beverage: e.beverage ?? Beverage.Water,
       }));
       return IntakeLog.create(events);
     } catch {
@@ -49,6 +57,7 @@ export const createLocalStorageIntakeRepository = (
         id: e.id,
         at: e.at.toISOString(),
         volume: e.volume,
+        beverage: e.beverage,
       })),
     };
     storage.setItem(KEY, JSON.stringify(data));

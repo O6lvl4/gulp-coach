@@ -5,11 +5,13 @@ import { IntakeEventId, type IntakeEvent } from "../intake/intake-event.js";
 import { Profile } from "../profile/profile.js";
 import { Sex } from "../profile/sex.js";
 import { Kilogram, Year, Milliliter } from "../shared/units.js";
+import { Beverage } from "../intake/beverage.js";
 
 const ev = (id: string, atIso: string, vol: number): IntakeEvent => ({
   id: IntakeEventId.unsafe(id),
   at: new Date(atIso),
   volume: Milliliter.unsafe(vol),
+  beverage: Beverage.Water,
 });
 
 const profile = Profile.create(Kilogram.unsafe(60), Year.unsafe(30), Sex.Male);

@@ -13,12 +13,17 @@ import {
   IntakeEventId,
   type IntakeEvent,
 } from "../domain/intake/intake-event.js";
+import { Beverage } from "../domain/intake/beverage.js";
 import type { Milliliter } from "../domain/shared/units.js";
 import type { Profile } from "../domain/profile/profile.js";
 import {
   HydrationStatus,
   type HydrationStatus as HS,
 } from "../domain/hydration/status.js";
+import {
+  CaffeineStatus,
+  type CaffeineStatus as CS,
+} from "../domain/caffeine/status.js";
 
 export type Deps = {
   readonly intake: IntakeRepository;
@@ -31,12 +36,14 @@ export type Deps = {
 export const logIntake = async (
   deps: Deps,
   volume: Milliliter,
+  beverage: Beverage = Beverage.Water,
 ): Promise<IntakeEvent> => {
   const log = await deps.intake.load();
   const event: IntakeEvent = {
     id: IntakeEventId.unsafe(deps.idGen()),
     at: deps.clock(),
     volume,
+    beverage,
   };
   await deps.intake.save(IntakeLog.add(log, event));
   return event;
@@ -80,6 +87,7 @@ export const saveProfile = async (
 export type DashboardSnapshot = {
   readonly profile: Profile;
   readonly status: HS;
+  readonly caffeine: CS;
   readonly log: IntakeLog;
 };
 
@@ -94,6 +102,7 @@ export const loadDashboard = async (
   return {
     profile,
     status: HydrationStatus.compute(log, profile, now),
+    caffeine: CaffeineStatus.compute(log, now),
     log,
   };
 };
