@@ -59,6 +59,7 @@ const handleEditRequest = async (id: IntakeEventId): Promise<void> => {
   showEditModal(
     refs,
     { id: event.id, at: event.at, volume: event.volume, beverage: event.beverage },
+    deps.clock(),
     {
       onSave: (patch) => {
         const v =

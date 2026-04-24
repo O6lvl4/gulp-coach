@@ -224,14 +224,35 @@ export type EditCallbacks = {
   onClose: () => void;
 };
 
+const RELATIVE_OFFSETS_MIN = [0, 15, 30, 60, 120] as const;
+const RELATIVE_LABEL = (m: number): string => (m === 0 ? "今" : `${m < 60 ? `${m}m` : `${m / 60}h`}前`);
+
 export const showEditModal = (
   refs: DomRefs,
   event: { id: IntakeEventId; at: Date; volume: number; beverage: Beverage },
+  now: Date,
   callbacks: EditCallbacks,
 ): void => {
   refs.editOverlay.hidden = false;
-  refs.eTime.value = `${pad2(event.at.getHours())}:${pad2(event.at.getMinutes())}`;
+  refs.eHour.value = String(event.at.getHours());
+  refs.eMinute.value = pad2(event.at.getMinutes());
   refs.eVolume.value = String(event.volume);
+
+  // ─── 相対時刻ボタン ─────
+  refs.eRelButtons.innerHTML = "";
+  for (const m of RELATIVE_OFFSETS_MIN) {
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className =
+      "h-10 rounded-[4px] border border-line text-text-dim font-mono text-[12px] hover:border-water hover:text-water active:bg-water/10 transition-colors";
+    btn.textContent = RELATIVE_LABEL(m);
+    btn.addEventListener("click", () => {
+      const t = new Date(now.getTime() - m * 60_000);
+      refs.eHour.value = String(t.getHours());
+      refs.eMinute.value = pad2(t.getMinutes());
+    });
+    refs.eRelButtons.appendChild(btn);
+  }
 
   let currentBeverage = event.beverage;
   const drawBevTabs = () => {
@@ -262,9 +283,12 @@ export const showEditModal = (
 
   const onSubmit = (e: SubmitEvent) => {
     e.preventDefault();
-    const [h, m] = refs.eTime.value.split(":").map(Number);
+    const h = Number(refs.eHour.value);
+    const m = Number(refs.eMinute.value);
     const at = new Date(event.at);
-    if (!Number.isNaN(h) && !Number.isNaN(m)) at.setHours(h, m, 0, 0);
+    if (Number.isFinite(h) && Number.isFinite(m) && h >= 0 && h < 24 && m >= 0 && m < 60) {
+      at.setHours(h, m, 0, 0);
+    }
     const vol = Number(refs.eVolume.value);
     callbacks.onSave({
       at,
