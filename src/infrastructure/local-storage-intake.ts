@@ -10,7 +10,16 @@ import {
 } from "../domain/intake/intake-event.js";
 import { Milliliter } from "../domain/shared/units.js";
 
-const KEY = "hydration-coach:intake-log:v1";
+const KEY = "gulp-coach:intake-log:v1";
+const LEGACY_KEY = "hydration-coach:intake-log:v1";
+
+const migrateIfNeeded = (storage: Storage): void => {
+  if (storage.getItem(KEY) != null) return;
+  const legacy = storage.getItem(LEGACY_KEY);
+  if (legacy == null) return;
+  storage.setItem(KEY, legacy);
+  storage.removeItem(LEGACY_KEY);
+};
 
 type StoredEvent = { id: string; at: string; volume: number };
 type Stored = { events: StoredEvent[] };
@@ -19,6 +28,7 @@ export const createLocalStorageIntakeRepository = (
   storage: Storage = window.localStorage,
 ): IntakeRepository => ({
   async load() {
+    migrateIfNeeded(storage);
     const raw = storage.getItem(KEY);
     if (!raw) return IntakeLog.empty();
     try {

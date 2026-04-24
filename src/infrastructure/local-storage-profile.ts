@@ -6,7 +6,16 @@ import { Profile } from "../domain/profile/profile.js";
 import { Sex } from "../domain/profile/sex.js";
 import { Kilogram, Year, MlPerHour } from "../domain/shared/units.js";
 
-const KEY = "hydration-coach:profile:v1";
+const KEY = "gulp-coach:profile:v1";
+const LEGACY_KEY = "hydration-coach:profile:v1";
+
+const migrateIfNeeded = (storage: Storage): void => {
+  if (storage.getItem(KEY) != null) return;
+  const legacy = storage.getItem(LEGACY_KEY);
+  if (legacy == null) return;
+  storage.setItem(KEY, legacy);
+  storage.removeItem(LEGACY_KEY);
+};
 
 type Stored = {
   weight: number;
@@ -19,6 +28,7 @@ export const createLocalStorageProfileRepository = (
   storage: Storage = window.localStorage,
 ): ProfileRepository => ({
   async load() {
+    migrateIfNeeded(storage);
     const raw = storage.getItem(KEY);
     if (!raw) return null;
     try {

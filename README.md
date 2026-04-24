@@ -1,8 +1,8 @@
-# Hydration Coach
+# Gulp Coach
 
-「今あと何mL飲める? あと何分待つ?」を Profile + 直近摂取量から教えてくれる、完全ローカル動作の水分摂取コーチ。
+「今あと何mL (何ごく) 飲める? あと何分待つ?」を Profile + 直近摂取量から教えてくれる、完全ローカル動作の水分摂取コーチ。
 
-公開: https://o6lvl4.github.io/hydration-coach/
+公開: https://o6lvl4.github.io/gulp-coach/
 
 ## 主機能
 
