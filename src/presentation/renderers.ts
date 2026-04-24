@@ -200,9 +200,9 @@ const renderLog = (
     li.innerHTML = `
       <input type="time" value="${pad2(e.at.getHours())}:${pad2(e.at.getMinutes())}"
         class="bg-panel-2 border border-line-strong rounded-[3px] px-2 h-9 text-text-dim font-mono text-[12px] focus:border-water outline-none" />
-      <span class="text-water font-mono font-semibold flex items-center gap-1 flex-wrap">
-        <span class="text-[15px] leading-none">${twemojiImg(meta.emoji)}</span>
-        <span>+${e.volume} mL</span>
+      <span class="font-mono font-semibold flex items-center gap-2 flex-wrap">
+        <span class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-water/15 border border-water/30 text-[18px] leading-none shrink-0">${twemojiImg(meta.emoji)}</span>
+        <span class="text-water">+${e.volume} mL</span>
         <span class="text-text-mute font-normal">≈ ${gulps}ごく${cafText}</span>
       </span>
       <button type="button" class="del-btn h-9 w-9 rounded-[3px] border border-line-strong text-text-mute hover:border-bad hover:text-bad" title="削除" aria-label="削除">×</button>
