@@ -17,6 +17,7 @@ import {
   isCaffeinated,
 } from "../domain/intake/beverage.js";
 import { escapeHtml, formatHm, pad2 } from "./format.js";
+import { twemojiImg } from "./twemoji.js";
 
 const QUICK_AMOUNTS_ML = [100, 200, 300, 500] as const;
 const QUICK_AMOUNTS_GULP = [1, 5, 10, 15] as const;
@@ -90,7 +91,7 @@ export const renderBeverageTabs = (
         : "border-line text-text-dim hover:border-line-strong",
     ].join(" ");
     btn.innerHTML = `
-      <span class="text-base leading-none">${meta.emoji}</span>
+      <span class="text-[18px] leading-none">${twemojiImg(meta.emoji)}</span>
       <span class="text-[10px] tracking-[0.05em]">${escapeHtml(meta.label)}</span>
     `;
     btn.addEventListener("click", () => onSelect(b));
@@ -199,8 +200,9 @@ const renderLog = (
     li.innerHTML = `
       <input type="time" value="${pad2(e.at.getHours())}:${pad2(e.at.getMinutes())}"
         class="bg-panel-2 border border-line-strong rounded-[3px] px-2 h-9 text-text-dim font-mono text-[12px] focus:border-water outline-none" />
-      <span class="text-water font-mono font-semibold">
-        ${meta.emoji} +${e.volume} mL
+      <span class="text-water font-mono font-semibold flex items-center gap-1 flex-wrap">
+        <span class="text-[15px] leading-none">${twemojiImg(meta.emoji)}</span>
+        <span>+${e.volume} mL</span>
         <span class="text-text-mute font-normal">≈ ${gulps}ごく${cafText}</span>
       </span>
       <button type="button" class="del-btn h-9 w-9 rounded-[3px] border border-line-strong text-text-mute hover:border-bad hover:text-bad" title="削除" aria-label="削除">×</button>
