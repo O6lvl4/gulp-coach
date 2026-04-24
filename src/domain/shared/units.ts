@@ -41,14 +41,18 @@ export const Year = {
   unsafe: (n: number): Year => n as Year,
 };
 
-// ─── 速度 (mL/h) ────────────────────────────────
-export type MlPerHour = Brand<number, "MlPerHour">;
-export const MlPerHour = {
-  of: (n: number): Result<MlPerHour, string> =>
-    Number.isFinite(n) && n >= 0 && n <= 5_000
-      ? ok(n as MlPerHour)
-      : err(`MlPerHour out of range: ${n}`),
-  unsafe: (n: number): MlPerHour => n as MlPerHour,
+// ─── 速度 (mL/min) ──────────────────────────────
+/**
+ * 胃排出速度。生理学上の典型値は水で約 10 mL/min (持続可能)、
+ * 上限 ~16 mL/min (Noakes 低Na血症基準)。
+ */
+export type MlPerMin = Brand<number, "MlPerMin">;
+export const MlPerMin = {
+  of: (n: number): Result<MlPerMin, string> =>
+    Number.isFinite(n) && n >= 1 && n <= 30
+      ? ok(n as MlPerMin)
+      : err(`MlPerMin out of range: ${n}`),
+  unsafe: (n: number): MlPerMin => n as MlPerMin,
 };
 
 // ─── 分 (待機時間用) ────────────────────────────

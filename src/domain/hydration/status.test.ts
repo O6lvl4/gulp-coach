@@ -14,39 +14,51 @@ const ev = (id: string, atIso: string, vol: number): IntakeEvent => ({
   beverage: Beverage.Water,
 });
 
+// 60kg → emptyingRate 9 mL/min, dailyTarget 2100
 const profile = Profile.create(Kilogram.unsafe(60), Year.unsafe(30), Sex.Male);
-// → maxHourlyRate = 600, dailyTarget = 2100
 
 const NOW = new Date("2026-04-24T12:00:00");
 
-describe("HydrationStatus.compute", () => {
-  it("空ログ: 即 ok で sessionMax まで飲める", () => {
+describe("HydrationStatus.compute (pool model)", () => {
+  it("空ログ: pool 0、即 ok で sessionMax 400 まで", () => {
     const s = HydrationStatus.compute(IntakeLog.empty(), profile, NOW);
+    expect(s.currentPool).toBe(0);
     expect(s.advice.kind).toBe("ok");
     if (s.advice.kind === "ok") expect(s.advice.canDrinkUpTo).toBe(400);
   });
 
-  it("直近1hで300mL摂取済み: 残り300mLだが sessionMax 400 とは min", () => {
-    const log = IntakeLog.create([ev("a", "2026-04-24T11:30:00", 300)]);
-    const s = HydrationStatus.compute(log, profile, NOW);
-    expect(s.advice.kind).toBe("ok");
-    if (s.advice.kind === "ok") expect(s.advice.canDrinkUpTo).toBe(300);
+  it("emptyingRate と stomachLimit が status に出る", () => {
+    const s = HydrationStatus.compute(IntakeLog.empty(), profile, NOW);
+    expect(s.emptyingRate).toBe(9);
+    expect(s.stomachLimit).toBe(500);
   });
 
-  it("直近1hで600mL満タン: wait に遷移", () => {
-    const log = IntakeLog.create([
-      ev("a", "2026-04-24T11:30:00", 300),
-      ev("b", "2026-04-24T11:50:00", 300),
-    ]);
+  it("ちょうど飲んだ300mL: pool 300、空き 200 → ok 200", () => {
+    const log = IntakeLog.create([ev("a", "2026-04-24T12:00:00", 300)]);
     const s = HydrationStatus.compute(log, profile, NOW);
+    expect(s.currentPool).toBe(300);
+    expect(s.advice.kind).toBe("ok");
+    if (s.advice.kind === "ok") expect(s.advice.canDrinkUpTo).toBe(200);
+  });
+
+  it("胃満タン (500): canDrink 0 → wait", () => {
+    const log = IntakeLog.create([ev("a", "2026-04-24T12:00:00", 500)]);
+    const s = HydrationStatus.compute(log, profile, NOW);
+    expect(s.currentPool).toBe(500);
     expect(s.advice.kind).toBe("wait");
     if (s.advice.kind === "wait") {
-      // 11:30 のエベントが 12:30 に窓を抜ける → そこで 300mL free → minMeaningful 100 以上 ok
-      expect(s.advice.until.toISOString()).toBe(
-        new Date("2026-04-24T12:30:00").toISOString(),
-      );
-      expect(s.advice.waitMinutes).toBe(30);
+      // pool が 400 (limit - minMeaningful) まで下がる: 100mL drain @ 9 mL/min = 11.11min → ceil 12
+      expect(s.advice.waitMinutes).toBe(12);
     }
+  });
+
+  it("時間経過で pool が減衰: 30分前に300mL なら pool ≈ 30 (300-30*9=30)", () => {
+    const at = new Date(NOW.getTime() - 30 * 60_000);
+    const log = IntakeLog.create([
+      { ...ev("a", "", 300), at },
+    ]);
+    const s = HydrationStatus.compute(log, profile, NOW);
+    expect(s.currentPool).toBe(30);
   });
 
   it("当日合計と進捗率が出る", () => {
@@ -60,20 +72,11 @@ describe("HydrationStatus.compute", () => {
     expect(s.dailyProgressRatio).toBeCloseTo(900 / 2100, 5);
   });
 
-  it("1h前ちょうどのエベントは window 内 (since 側を含む半開区間)", () => {
-    const log = IntakeLog.create([ev("a", "2026-04-24T11:00:00", 600)]);
+  it("飲んでから十分経てば pool 0 で ok", () => {
+    const at = new Date(NOW.getTime() - 60 * 60_000); // 1h前
+    const log = IntakeLog.create([{ ...ev("a", "", 300), at }]);
     const s = HydrationStatus.compute(log, profile, NOW);
-    expect(s.consumedLastHour).toBe(600);
-    expect(s.advice.kind).toBe("wait");
-    if (s.advice.kind === "wait") {
-      // until は 11:00 + 1h = 12:00、now と同時刻なので 0分待ち (即可能)
-      expect(s.advice.waitMinutes).toBe(0);
-    }
-  });
-
-  it("503mL ちょうど摂取で残り97mL → minimumMeaningful 100未満 → wait", () => {
-    const log = IntakeLog.create([ev("a", "2026-04-24T11:30:00", 503)]);
-    const s = HydrationStatus.compute(log, profile, NOW);
-    expect(s.advice.kind).toBe("wait");
+    expect(s.currentPool).toBe(0);
+    expect(s.advice.kind).toBe("ok");
   });
 });

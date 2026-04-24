@@ -116,7 +116,7 @@ export const renderDashboard = (
 };
 
 const renderStatus = (refs: DomRefs, s: HydrationStatus): void => {
-  refs.statusRate.textContent = `MAX ${s.maxHourlyRate} mL/h`;
+  refs.statusRate.textContent = `EMPTYING ${s.emptyingRate} mL/min`;
 
   if (s.advice.kind === "ok") {
     const gulps = Gulp.fromMl(s.advice.canDrinkUpTo);
@@ -125,15 +125,15 @@ const renderStatus = (refs: DomRefs, s: HydrationStatus): void => {
     refs.statusValue.textContent = `${s.advice.canDrinkUpTo} mL`;
     refs.statusValue.className =
       "font-mono text-5xl font-semibold text-ok leading-tight tabular-nums";
-    refs.statusSub.textContent = `≈ ${gulps}ごく / 直近1h: ${s.consumedLastHour}mL · 上限 ${s.maxHourlyRate}mL`;
+    refs.statusSub.textContent = `≈ ${gulps}ごく / 胃に ${s.currentPool}mL · 容量 ${s.stomachLimit}mL`;
   } else {
-    const gulps = Gulp.fromMl(s.consumedLastHour);
+    const poolGulps = Gulp.fromMl(s.currentPool);
     refs.statusHeadline.textContent = "WAIT";
     refs.statusHeadline.className = "text-[10px] tracking-[0.3em] text-warn mb-1";
     refs.statusValue.textContent = `あと ${s.advice.waitMinutes} 分`;
     refs.statusValue.className =
       "font-mono text-5xl font-semibold text-warn leading-tight tabular-nums";
-    refs.statusSub.textContent = `${formatHm(s.advice.until)} まで控えめに (直近1h: ${s.consumedLastHour}mL ≈ ${gulps}ごく)`;
+    refs.statusSub.textContent = `${formatHm(s.advice.until)} まで控えめに (胃に ${s.currentPool}mL ≈ ${poolGulps}ごく)`;
   }
 };
 
