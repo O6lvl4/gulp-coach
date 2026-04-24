@@ -29,6 +29,9 @@
 }
 
 @layer base {
+  html {
+    color-scheme: dark;
+  }
   html,
   body {
     background-color: var(--color-bg);
@@ -57,6 +60,10 @@
   input,
   select {
     font-family: var(--font-mono);
+  }
+  input[type="time"]::-webkit-calendar-picker-indicator {
+    filter: invert(0.85) opacity(0.7);
+    cursor: pointer;
   }
 }
 
