@@ -61,9 +61,19 @@
   select {
     font-family: var(--font-mono);
   }
+  /* time入力のネイティブ時計アイコンはダーク背景で潰れるので非表示にし、
+     入力自体タップで編集できるよう挙動だけ残す */
   input[type="time"]::-webkit-calendar-picker-indicator {
-    filter: invert(0.85) opacity(0.7);
-    cursor: pointer;
+    -webkit-appearance: none;
+    appearance: none;
+    display: none;
+  }
+  input[type="time"]::-webkit-time-picker-indicator {
+    display: none;
+  }
+  input[type="time"] {
+    -webkit-appearance: none;
+    appearance: none;
   }
 }
 

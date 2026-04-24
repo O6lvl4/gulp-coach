@@ -198,8 +198,11 @@ const renderLog = (
     li.className =
       "grid grid-cols-[auto_1fr_auto] items-center gap-2 px-3 py-2 border-b border-line last:border-b-0 text-[13px] tabular-nums";
     li.innerHTML = `
-      <input type="time" value="${pad2(e.at.getHours())}:${pad2(e.at.getMinutes())}"
-        class="bg-panel-2 border border-line-strong rounded-[3px] px-2 h-9 text-text-dim font-mono text-[12px] focus:border-water outline-none" />
+      <label class="inline-flex items-center gap-1 bg-panel-2 border border-line-strong rounded-[3px] pl-2 pr-1 h-9 cursor-pointer hover:border-water">
+        <span class="text-[14px] leading-none text-text-dim shrink-0">${twemojiImg("🕐")}</span>
+        <input type="time" value="${pad2(e.at.getHours())}:${pad2(e.at.getMinutes())}"
+          class="bg-transparent border-0 px-1 h-9 text-text font-mono text-[12px] focus:outline-none w-[68px]" />
+      </label>
       <span class="font-mono font-semibold flex items-center gap-2 flex-wrap">
         <span class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-water/15 border border-water/30 text-[18px] leading-none shrink-0">${twemojiImg(meta.emoji)}</span>
         <span class="text-water">+${e.volume} mL</span>
