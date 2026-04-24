@@ -1,0 +1,67 @@
+@import "tailwindcss";
+
+@theme {
+  --color-bg: #07101a;
+  --color-bg-grid: #0c1925;
+  --color-panel: #0f1c2a;
+  --color-panel-2: #142436;
+  --color-line: #1f3548;
+  --color-line-strong: #2a4760;
+
+  --color-text: #e0eef9;
+  --color-text-dim: #84a0bb;
+  --color-text-mute: #54708a;
+
+  --color-water: #46c8ff;
+  --color-water-dim: #2a8fbe;
+
+  --color-ok: #46c8ff;
+  --color-warn: #ffb547;
+  --color-bad: #ff5c5c;
+
+  --font-mono:
+    ui-monospace, "SF Mono", "JetBrains Mono", Menlo, Consolas, monospace;
+  --font-sans:
+    -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Noto Sans JP",
+    "Segoe UI", Roboto, sans-serif;
+
+  --animate-fill: fill 0.5s ease-out;
+}
+
+@layer base {
+  html,
+  body {
+    background-color: var(--color-bg);
+    background-image:
+      radial-gradient(circle at 20% 0%, rgba(70, 200, 255, 0.06), transparent 40%),
+      linear-gradient(var(--color-bg-grid) 1px, transparent 1px),
+      linear-gradient(90deg, var(--color-bg-grid) 1px, transparent 1px);
+    background-size: auto, 48px 48px, 48px 48px;
+    color: var(--color-text);
+    font-family: var(--font-mono);
+    font-size: 14px;
+    -webkit-font-smoothing: antialiased;
+    letter-spacing: 0.01em;
+    -webkit-tap-highlight-color: transparent;
+    text-size-adjust: 100%;
+    -webkit-text-size-adjust: 100%;
+  }
+  body {
+    touch-action: manipulation;
+    overscroll-behavior-y: none;
+  }
+  button {
+    font-family: var(--font-mono);
+    cursor: pointer;
+  }
+  input,
+  select {
+    font-family: var(--font-mono);
+  }
+}
+
+@keyframes fill {
+  from {
+    width: 0;
+  }
+}

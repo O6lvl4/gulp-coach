@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="theme-color" content="#07101a" />
+    <title>HYDRATION/COACH</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 fill=%22%2307101a%22/><text y=%22.92em%22 x=%22.1em%22 font-family=%22monospace%22 font-size=%2280%22 fill=%22%2346c8ff%22>💧</text></svg>" />
+  </head>
+  <body>
+    <main class="max-w-[640px] mx-auto pt-4 px-[max(14px,env(safe-area-inset-left))] pr-[max(14px,env(safe-area-inset-right))] pb-[calc(3rem+env(safe-area-inset-bottom))]">
+      <!-- ─── Header ─────────────────────────── -->
+      <header class="mb-4 border-b border-line pb-3">
+        <div class="flex items-end justify-between gap-3">
+          <div class="flex items-baseline gap-[10px] flex-wrap">
+            <span class="text-[10px] tracking-[0.3em] text-water bg-water/10 px-[6px] py-[2px] border border-water-dim">HYDRATION</span>
+            <h1 class="m-0 font-mono text-xl font-bold tracking-[0.12em] text-text">COACH <span class="text-[11px] text-text-mute tracking-[0.05em] ml-1">v0.1</span></h1>
+          </div>
+          <button id="profile-btn" class="shrink-0 h-11 px-3 rounded-[4px] border border-line-strong bg-panel text-water cursor-pointer text-[11px] tracking-[0.18em] hover:border-water" title="プロファイル編集">PROFILE</button>
+        </div>
+        <div id="status-line" class="mt-[10px] text-[11px] text-text-dim tracking-[0.06em]"></div>
+      </header>
+
+      <!-- ─── Profile Setup (初回 / 編集時) ─── -->
+      <section id="profile-form" class="my-3 rounded-[4px] border border-line bg-panel" hidden>
+        <div class="flex items-center gap-[10px] px-3 py-2 bg-panel-2 border-b border-line">
+          <span class="text-[10.5px] font-semibold tracking-[0.18em] text-water">PROFILE</span>
+        </div>
+        <form id="profile-form-inner" class="px-3 py-4 grid gap-3">
+          <label class="flex flex-col gap-1">
+            <span class="text-[10px] tracking-[0.18em] text-text-mute">体重 (kg)</span>
+            <input id="f-weight" type="number" step="0.5" min="20" max="250" required
+                   class="bg-panel-2 border border-line-strong rounded-[4px] px-3 h-11 text-text font-mono text-base focus:border-water outline-none" />
+          </label>
+          <label class="flex flex-col gap-1">
+            <span class="text-[10px] tracking-[0.18em] text-text-mute">年齢</span>
+            <input id="f-age" type="number" min="0" max="130" required
+                   class="bg-panel-2 border border-line-strong rounded-[4px] px-3 h-11 text-text font-mono text-base focus:border-water outline-none" />
+          </label>
+          <label class="flex flex-col gap-1">
+            <span class="text-[10px] tracking-[0.18em] text-text-mute">性別</span>
+            <select id="f-sex" class="bg-panel-2 border border-line-strong rounded-[4px] px-3 h-11 text-text font-mono text-base focus:border-water outline-none">
+              <option value="male">男性</option>
+              <option value="female">女性</option>
+              <option value="other">その他</option>
+            </select>
+          </label>
+          <div class="flex gap-2 mt-2">
+            <button type="submit" class="flex-1 h-11 rounded-[4px] bg-water text-bg font-bold tracking-[0.1em] hover:bg-water-dim">SAVE</button>
+            <button type="button" id="profile-cancel" class="h-11 px-4 rounded-[4px] border border-line-strong text-text-dim hover:border-water">CANCEL</button>
+          </div>
+        </form>
+      </section>
+
+      <!-- ─── Main Status ────────────────────── -->
+      <section id="status" class="my-3 rounded-[4px] border border-line bg-panel" hidden>
+        <div class="flex items-center justify-between gap-2 px-3 py-2 bg-panel-2 border-b border-line">
+          <span class="text-[10.5px] font-semibold tracking-[0.18em] text-water">STATUS</span>
+          <span id="status-rate" class="text-[11px] text-text-dim"></span>
+        </div>
+        <div class="px-3 pt-5 pb-4 text-center">
+          <div id="status-headline" class="text-[10px] tracking-[0.3em] text-text-mute mb-1">AVAILABLE</div>
+          <div id="status-value" class="font-mono text-5xl font-semibold text-text leading-tight tabular-nums">— mL</div>
+          <div id="status-sub" class="text-[12.5px] text-text-dim mt-2 font-sans"></div>
+        </div>
+      </section>
+
+      <!-- ─── Quick Buttons ──────────────────── -->
+      <section id="quick" class="my-3 rounded-[4px] border border-line bg-panel" hidden>
+        <div class="flex items-center gap-[10px] px-3 py-2 bg-panel-2 border-b border-line">
+          <span class="text-[10.5px] font-semibold tracking-[0.18em] text-water">LOG INTAKE</span>
+        </div>
+        <div class="grid grid-cols-4 gap-2 p-3" id="quick-buttons"></div>
+        <form id="custom-form" class="flex gap-2 px-3 pb-3">
+          <input id="custom-amount" type="number" min="1" max="2000" step="10" placeholder="任意 mL"
+                 class="flex-1 bg-panel-2 border border-line-strong rounded-[4px] px-3 h-11 text-text font-mono text-base focus:border-water outline-none" />
+          <button type="submit" class="h-11 px-5 rounded-[4px] border border-water text-water hover:bg-water/10">+</button>
+        </form>
+      </section>
+
+      <!-- ─── Daily Progress ─────────────────── -->
+      <section id="daily" class="my-3 rounded-[4px] border border-line bg-panel" hidden>
+        <div class="flex items-center justify-between gap-2 px-3 py-2 bg-panel-2 border-b border-line">
+          <span class="text-[10.5px] font-semibold tracking-[0.18em] text-water">TODAY</span>
+          <span id="daily-pct" class="text-[11px] text-text-dim font-mono tabular-nums"></span>
+        </div>
+        <div class="px-3 py-3">
+          <div class="flex justify-between text-[12px] text-text-dim mb-2 font-mono tabular-nums">
+            <span id="daily-current">— mL</span>
+            <span id="daily-target">/ — mL</span>
+          </div>
+          <div class="h-3 rounded-[2px] bg-panel-2 overflow-hidden border border-line">
+            <div id="daily-bar" class="h-full bg-gradient-to-r from-water-dim to-water animate-fill" style="width: 0%"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ─── Recent Log ─────────────────────── -->
+      <section id="log" class="my-3 rounded-[4px] border border-line bg-panel" hidden>
+        <div class="flex items-center justify-between gap-2 px-3 py-2 bg-panel-2 border-b border-line">
+          <span class="text-[10.5px] font-semibold tracking-[0.18em] text-water">RECENT</span>
+          <button id="undo-btn" class="text-[11px] text-text-dim hover:text-water">UNDO</button>
+        </div>
+        <ul id="log-list" class="list-none m-0 p-0"></ul>
+      </section>
+
+      <footer class="mt-6 text-center text-[11px] text-text-mute leading-[1.7] tracking-[0.04em]">
+        <p class="my-[2px]">完全ローカル動作・データはこの端末の localStorage にのみ保存</p>
+        <p class="my-[2px]">※ 表示は推定であり医学的助言ではありません</p>
+      </footer>
+    </main>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
