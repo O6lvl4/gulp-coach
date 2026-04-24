@@ -50,6 +50,25 @@ export const undoLast = async (deps: Deps): Promise<void> => {
   await deps.intake.save(IntakeLog.remove(log, last.id));
 };
 
+/** 指定イベントを削除 */
+export const deleteEvent = async (
+  deps: Deps,
+  id: IntakeEventId,
+): Promise<void> => {
+  const log = await deps.intake.load();
+  await deps.intake.save(IntakeLog.remove(log, id));
+};
+
+/** 指定イベントの時刻を更新 (後追い記録の補正) */
+export const updateEventTime = async (
+  deps: Deps,
+  id: IntakeEventId,
+  newAt: Date,
+): Promise<void> => {
+  const log = await deps.intake.load();
+  await deps.intake.save(IntakeLog.updateAt(log, id, newAt));
+};
+
 /** プロファイル保存 */
 export const saveProfile = async (
   deps: Pick<Deps, "profile">,

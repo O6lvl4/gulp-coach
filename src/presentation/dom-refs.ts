@@ -24,7 +24,8 @@ export const collectDomRefs = () => ({
   statusSub: $("status-sub"),
 
   quick: $("quick"),
-  quickButtons: $("quick-buttons"),
+  quickButtonsMl: $("quick-buttons-ml"),
+  quickButtonsGulp: $("quick-buttons-gulp"),
   customForm: $<HTMLFormElement>("custom-form"),
   customAmount: $<HTMLInputElement>("custom-amount"),
 

@@ -56,3 +56,22 @@ export type Minute = Brand<number, "Minute">;
 export const Minute = {
   of: (n: number): Minute => Math.max(0, Math.ceil(n)) as Minute,
 };
+
+// ─── ごく (gulp / swallow) ──────────────────────
+/**
+ * 1ごく = 30mL (成人の平均的な一口の体積、文献値の中央)。
+ * 摂取の「直感的な単位」として mL と相互変換できる Value Object。
+ */
+export const ML_PER_GULP = 30 as const;
+
+export type Gulp = Brand<number, "Gulp">;
+export const Gulp = {
+  of: (n: number): Result<Gulp, string> =>
+    Number.isFinite(n) && n >= 0 && n <= 200
+      ? ok(n as Gulp)
+      : err(`Gulp out of range: ${n}`),
+  unsafe: (n: number): Gulp => n as Gulp,
+  toMl: (g: Gulp): Milliliter => Milliliter.unsafe(Math.round(g * ML_PER_GULP)),
+  /** mL → ごく数 (整数に丸める。表示用) */
+  fromMl: (m: Milliliter): Gulp => Math.round(m / ML_PER_GULP) as Gulp,
+};

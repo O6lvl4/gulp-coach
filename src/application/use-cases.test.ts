@@ -4,6 +4,8 @@ import {
   loadDashboard,
   undoLast,
   saveProfile,
+  deleteEvent,
+  updateEventTime,
   type Deps,
 } from "./use-cases.js";
 import type {
@@ -96,6 +98,38 @@ describe("loadDashboard", () => {
     expect(r).not.toBeNull();
     expect(r!.status.advice.kind).toBe("ok");
     expect(r!.profile.weight).toBe(60);
+  });
+});
+
+describe("deleteEvent", () => {
+  it("指定 id を削除", async () => {
+    const initial = IntakeLog.create([
+      {
+        id: IntakeEventId.unsafe("a"),
+        at: new Date("2026-04-24T10:00:00"),
+        volume: Milliliter.unsafe(100),
+      },
+    ]);
+    const intake = inMemoryIntake(initial);
+    await deleteEvent(buildDeps({ intake }), IntakeEventId.unsafe("a"));
+    expect((await intake.load()).events).toHaveLength(0);
+  });
+});
+
+describe("updateEventTime", () => {
+  it("指定 id の時刻を更新", async () => {
+    const initial = IntakeLog.create([
+      {
+        id: IntakeEventId.unsafe("a"),
+        at: new Date("2026-04-24T10:00:00"),
+        volume: Milliliter.unsafe(100),
+      },
+    ]);
+    const intake = inMemoryIntake(initial);
+    const newAt = new Date("2026-04-24T08:30:00");
+    await updateEventTime(buildDeps({ intake }), IntakeEventId.unsafe("a"), newAt);
+    const saved = await intake.load();
+    expect(saved.events[0].at.toISOString()).toBe(newAt.toISOString());
   });
 });
 

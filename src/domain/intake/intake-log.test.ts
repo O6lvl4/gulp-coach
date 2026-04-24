@@ -70,6 +70,23 @@ describe("IntakeLog", () => {
     expect(o?.id).toBe("b");
   });
 
+  it("updateAt で時刻を変更し、ソート順も再構成", () => {
+    const log = IntakeLog.create([
+      ev("a", "2026-04-24T10:00:00", 100),
+      ev("b", "2026-04-24T11:00:00", 200),
+    ]);
+    const updated = IntakeLog.updateAt(
+      log,
+      IntakeEventId.unsafe("a"),
+      new Date("2026-04-24T12:00:00"),
+    );
+    // a が 12:00 になったので順序は b (11:00) → a (12:00)
+    expect(updated.events.map((e) => e.id)).toEqual(["b", "a"]);
+    expect(updated.events.find((e) => e.id === "a")!.at.toISOString()).toBe(
+      new Date("2026-04-24T12:00:00").toISOString(),
+    );
+  });
+
   it("recent は新しい順で n 件", () => {
     const log = IntakeLog.create([
       ev("a", "2026-04-24T10:00:00", 100),

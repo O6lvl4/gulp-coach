@@ -13,16 +13,19 @@ import {
 import { createLocalStorageIntakeRepository } from "./infrastructure/local-storage-intake.js";
 import { createLocalStorageProfileRepository } from "./infrastructure/local-storage-profile.js";
 import {
+  deleteEvent,
   loadDashboard,
   logIntake,
   saveProfile,
   undoLast,
+  updateEventTime,
   type Deps,
 } from "./application/use-cases.js";
 import { Milliliter, Kilogram, Year } from "./domain/shared/units.js";
 import { isOk } from "./domain/shared/result.js";
 import { Profile } from "./domain/profile/profile.js";
 import { Sex } from "./domain/profile/sex.js";
+import type { IntakeEventId } from "./domain/intake/intake-event.js";
 
 const deps: Deps = {
   intake: createLocalStorageIntakeRepository(),
@@ -36,6 +39,21 @@ const deps: Deps = {
 
 const refs = collectDomRefs();
 
+const handleTimeChange = async (id: IntakeEventId, hhmm: string): Promise<void> => {
+  const [h, m] = hhmm.split(":").map(Number);
+  if (Number.isNaN(h) || Number.isNaN(m)) return;
+  // 当日扱いで時刻だけ差し替え (まとめ記録は当日内の補正想定)
+  const base = deps.clock();
+  base.setHours(h, m, 0, 0);
+  await updateEventTime(deps, id, base);
+  await refresh();
+};
+
+const handleDelete = async (id: IntakeEventId): Promise<void> => {
+  await deleteEvent(deps, id);
+  await refresh();
+};
+
 const refresh = async (): Promise<void> => {
   const snap = await loadDashboard(deps);
   if (!snap) {
@@ -44,7 +62,10 @@ const refresh = async (): Promise<void> => {
     return;
   }
   renderStatusLine(refs, snap.profile);
-  renderDashboard(refs, snap);
+  renderDashboard(refs, snap, {
+    onTime: (id, hhmm) => void handleTimeChange(id, hhmm),
+    onDelete: (id) => void handleDelete(id),
+  });
 };
 
 const handleIntake = async (mL: number): Promise<void> => {
@@ -91,6 +112,4 @@ refs.profileFormInner.addEventListener("submit", async (e) => {
 });
 
 void refresh();
-
-// 1分ごとに再描画 (待機中カウントダウン用)
 setInterval(() => void refresh(), 60_000);

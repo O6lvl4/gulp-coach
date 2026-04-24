@@ -23,6 +23,12 @@ export const IntakeLog = {
     events: log.events.filter((e) => e.id !== id),
   }),
 
+  /** 指定 id のイベントの時刻を変更 (例: 後追い記録時) */
+  updateAt: (log: IntakeLog, id: IntakeEventId, newAt: Date): IntakeLog =>
+    IntakeLog.create(
+      log.events.map((e) => (e.id === id ? { ...e, at: newAt } : e)),
+    ),
+
   /** [since, until) の範囲合計 */
   totalBetween: (log: IntakeLog, since: Date, until: Date): Milliliter => {
     const sinceMs = since.getTime();
