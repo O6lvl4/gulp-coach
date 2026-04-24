@@ -29,6 +29,16 @@ export const IntakeLog = {
       log.events.map((e) => (e.id === id ? { ...e, at: newAt } : e)),
     ),
 
+  /** 指定 id のイベントを部分更新 (時刻 / 量 / 飲み物) */
+  update: (
+    log: IntakeLog,
+    id: IntakeEventId,
+    patch: Partial<Pick<IntakeEvent, "at" | "volume" | "beverage">>,
+  ): IntakeLog =>
+    IntakeLog.create(
+      log.events.map((e) => (e.id === id ? { ...e, ...patch } : e)),
+    ),
+
   /** [since, until) の範囲合計 */
   totalBetween: (log: IntakeLog, since: Date, until: Date): Milliliter => {
     const sinceMs = since.getTime();

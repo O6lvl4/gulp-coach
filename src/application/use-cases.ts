@@ -76,6 +76,16 @@ export const updateEventTime = async (
   await deps.intake.save(IntakeLog.updateAt(log, id, newAt));
 };
 
+/** 指定イベントを統合編集 (時刻 + 量 + 飲み物) */
+export const updateEvent = async (
+  deps: Deps,
+  id: IntakeEventId,
+  patch: { readonly at?: Date; readonly volume?: Milliliter; readonly beverage?: Beverage },
+): Promise<void> => {
+  const log = await deps.intake.load();
+  await deps.intake.save(IntakeLog.update(log, id, patch));
+};
+
 /** プロファイル保存 */
 export const saveProfile = async (
   deps: Pick<Deps, "profile">,

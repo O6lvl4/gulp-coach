@@ -130,6 +130,37 @@
         <p class="my-[2px]">※ 表示は推定であり医学的助言ではありません</p>
       </footer>
     </main>
+
+    <!-- ─── Edit Modal ─────────────────────── -->
+    <div id="edit-overlay" class="fixed inset-0 bg-bg/85 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center px-3 pb-[calc(1rem+env(safe-area-inset-bottom))] sm:pb-3" hidden>
+      <section class="w-full max-w-[420px] rounded-[6px] border border-line bg-panel shadow-2xl">
+        <div class="flex items-center justify-between gap-2 px-3 py-2 bg-panel-2 border-b border-line">
+          <span class="text-[10.5px] font-semibold tracking-[0.18em] text-water">EDIT INTAKE</span>
+          <button id="edit-close" type="button" class="h-9 w-9 text-text-mute hover:text-water text-lg" aria-label="閉じる">×</button>
+        </div>
+        <form id="edit-form" class="grid gap-3 px-3 py-4">
+          <label class="flex flex-col gap-1">
+            <span class="text-[10px] tracking-[0.18em] text-text-mute">TIME</span>
+            <input id="e-time" type="time" required
+                   class="bg-panel-2 border border-line-strong rounded-[4px] px-3 h-12 text-text font-mono text-base focus:border-water outline-none" />
+          </label>
+          <label class="flex flex-col gap-1">
+            <span class="text-[10px] tracking-[0.18em] text-text-mute">AMOUNT (mL)</span>
+            <input id="e-volume" type="number" min="1" max="2000" step="10" required
+                   class="bg-panel-2 border border-line-strong rounded-[4px] px-3 h-12 text-text font-mono text-base focus:border-water outline-none" />
+          </label>
+          <div class="flex flex-col gap-1">
+            <span class="text-[10px] tracking-[0.18em] text-text-mute">BEVERAGE</span>
+            <div id="e-beverage-tabs" class="flex gap-1 overflow-x-auto"></div>
+          </div>
+          <div class="flex gap-2 mt-2">
+            <button id="e-delete" type="button" class="h-12 px-4 rounded-[4px] border border-bad text-bad hover:bg-bad/10">DELETE</button>
+            <button type="submit" class="flex-1 h-12 rounded-[4px] bg-water text-bg font-bold tracking-[0.1em] hover:bg-water-dim">SAVE</button>
+          </div>
+        </form>
+      </section>
+    </div>
+
     <script type="module" src="/src/main.ts"></script>
   </body>
 </html>

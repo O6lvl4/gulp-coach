@@ -9,6 +9,7 @@ import {
   renderDashboard,
   renderQuickButtons,
   renderStatusLine,
+  showEditModal,
   showProfileForm,
 } from "./presentation/renderers.js";
 import { createLocalStorageIntakeRepository } from "./infrastructure/local-storage-intake.js";
@@ -19,7 +20,7 @@ import {
   logIntake,
   saveProfile,
   undoLast,
-  updateEventTime,
+  updateEvent,
   type Deps,
 } from "./application/use-cases.js";
 import { Milliliter, Kilogram, Year } from "./domain/shared/units.js";
@@ -50,18 +51,32 @@ const drawBeverageTabs = (): void => {
   });
 };
 
-const handleTimeChange = async (id: IntakeEventId, hhmm: string): Promise<void> => {
-  const [h, m] = hhmm.split(":").map(Number);
-  if (Number.isNaN(h) || Number.isNaN(m)) return;
-  const base = deps.clock();
-  base.setHours(h, m, 0, 0);
-  await updateEventTime(deps, id, base);
-  await refresh();
-};
-
-const handleDelete = async (id: IntakeEventId): Promise<void> => {
-  await deleteEvent(deps, id);
-  await refresh();
+const handleEditRequest = async (id: IntakeEventId): Promise<void> => {
+  const snap = await loadDashboard(deps);
+  if (!snap) return;
+  const event = snap.log.events.find((e) => e.id === id);
+  if (!event) return;
+  showEditModal(
+    refs,
+    { id: event.id, at: event.at, volume: event.volume, beverage: event.beverage },
+    {
+      onSave: (patch) => {
+        const v =
+          patch.volumeMl != null ? Milliliter.of(patch.volumeMl) : null;
+        void updateEvent(deps, id, {
+          at: patch.at,
+          volume: v && isOk(v) ? v.value : undefined,
+          beverage: patch.beverage,
+        }).then(refresh);
+      },
+      onDelete: () => {
+        void deleteEvent(deps, id).then(refresh);
+      },
+      onClose: () => {
+        /* noop */
+      },
+    },
+  );
 };
 
 const refresh = async (): Promise<void> => {
@@ -73,8 +88,7 @@ const refresh = async (): Promise<void> => {
   }
   renderStatusLine(refs, snap.profile);
   renderDashboard(refs, snap, {
-    onTime: (id, hhmm) => void handleTimeChange(id, hhmm),
-    onDelete: (id) => void handleDelete(id),
+    onEditRequest: (id) => void handleEditRequest(id),
   });
 };
 

@@ -23,8 +23,7 @@ const QUICK_AMOUNTS_ML = [100, 200, 300, 500] as const;
 const QUICK_AMOUNTS_GULP = [1, 5, 10, 15] as const;
 
 export type LogActions = {
-  onTime: (id: IntakeEventId, hhmm: string) => void;
-  onDelete: (id: IntakeEventId) => void;
+  onEditRequest: (id: IntakeEventId) => void;
 };
 
 export const renderStatusLine = (refs: DomRefs, profile: Profile | null): void => {
@@ -195,30 +194,112 @@ const renderLog = (
     const caf = caffeineMgFor(e.beverage, e.volume);
     const cafText = isCaffeinated(e.beverage) ? ` · ${caf}mg` : "";
     const li = document.createElement("li");
-    li.className =
-      "grid grid-cols-[auto_1fr_auto] items-center gap-2 px-3 py-2 border-b border-line last:border-b-0 text-[13px] tabular-nums";
+    li.className = "border-b border-line last:border-b-0";
     li.innerHTML = `
-      <label class="inline-flex items-center gap-1 bg-panel-2 border border-line-strong rounded-[3px] pl-2 pr-1 h-9 cursor-pointer hover:border-water">
-        <span class="text-[14px] leading-none text-text-dim shrink-0">${twemojiImg("🕐")}</span>
-        <input type="time" value="${pad2(e.at.getHours())}:${pad2(e.at.getMinutes())}"
-          class="bg-transparent border-0 px-1 h-9 text-text font-mono text-[12px] focus:outline-none w-[68px]" />
-      </label>
-      <span class="font-mono font-semibold flex items-center gap-2 flex-wrap">
-        <span class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-water/15 border border-water/30 text-[18px] leading-none shrink-0">${twemojiImg(meta.emoji)}</span>
-        <span class="text-water">+${e.volume} mL</span>
-        <span class="text-text-mute font-normal">≈ ${gulps}ごく${cafText}</span>
-      </span>
-      <button type="button" class="del-btn h-9 w-9 rounded-[3px] border border-line-strong text-text-mute hover:border-bad hover:text-bad" title="削除" aria-label="削除">×</button>
+      <button type="button" class="row-btn w-full grid grid-cols-[auto_1fr_auto] items-center gap-3 px-3 py-3 text-left hover:bg-panel-2 active:bg-panel-2 transition-colors">
+        <span class="font-mono text-text-dim text-[12px] tabular-nums flex items-center gap-1">
+          <span class="text-[13px] leading-none">${twemojiImg("🕐")}</span>
+          ${pad2(e.at.getHours())}:${pad2(e.at.getMinutes())}
+        </span>
+        <span class="font-mono font-semibold flex items-center gap-2 flex-wrap text-[13px] tabular-nums">
+          <span class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-water/15 border border-water/30 text-[18px] leading-none shrink-0">${twemojiImg(meta.emoji)}</span>
+          <span class="text-water">+${e.volume} mL</span>
+          <span class="text-text-mute font-normal">≈ ${gulps}ごく${cafText}</span>
+        </span>
+        <span class="text-text-mute text-[16px] leading-none">›</span>
+      </button>
     `;
-    const timeInput = li.querySelector<HTMLInputElement>("input[type=time]")!;
-    timeInput.addEventListener("change", () => {
-      if (timeInput.value) actions.onTime(e.id, timeInput.value);
-    });
-    li.querySelector<HTMLButtonElement>(".del-btn")!.addEventListener("click", () => {
-      actions.onDelete(e.id);
+    li.querySelector<HTMLButtonElement>(".row-btn")!.addEventListener("click", () => {
+      actions.onEditRequest(e.id);
     });
     refs.logList.appendChild(li);
   }
+};
+
+// ─── Edit Modal ──────────────────────────────────
+
+export type EditCallbacks = {
+  onSave: (patch: { at?: Date; volumeMl?: number; beverage?: Beverage }) => void;
+  onDelete: () => void;
+  onClose: () => void;
+};
+
+export const showEditModal = (
+  refs: DomRefs,
+  event: { id: IntakeEventId; at: Date; volume: number; beverage: Beverage },
+  callbacks: EditCallbacks,
+): void => {
+  refs.editOverlay.hidden = false;
+  refs.eTime.value = `${pad2(event.at.getHours())}:${pad2(event.at.getMinutes())}`;
+  refs.eVolume.value = String(event.volume);
+
+  let currentBeverage = event.beverage;
+  const drawBevTabs = () => {
+    refs.eBeverageTabs.innerHTML = "";
+    for (const b of allBeverages()) {
+      const meta = beverageMeta(b);
+      const selected = b === currentBeverage;
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = [
+        "shrink-0 flex flex-col items-center gap-[1px] px-3 py-2 rounded-[4px] border min-w-[62px] transition-colors",
+        selected
+          ? "border-water bg-water/10 text-water"
+          : "border-line text-text-dim hover:border-line-strong",
+      ].join(" ");
+      btn.innerHTML = `
+        <span class="text-[18px] leading-none">${twemojiImg(meta.emoji)}</span>
+        <span class="text-[10px] tracking-[0.05em]">${escapeHtml(meta.label)}</span>
+      `;
+      btn.addEventListener("click", () => {
+        currentBeverage = b;
+        drawBevTabs();
+      });
+      refs.eBeverageTabs.appendChild(btn);
+    }
+  };
+  drawBevTabs();
+
+  const onSubmit = (e: SubmitEvent) => {
+    e.preventDefault();
+    const [h, m] = refs.eTime.value.split(":").map(Number);
+    const at = new Date(event.at);
+    if (!Number.isNaN(h) && !Number.isNaN(m)) at.setHours(h, m, 0, 0);
+    const vol = Number(refs.eVolume.value);
+    callbacks.onSave({
+      at,
+      volumeMl: Number.isFinite(vol) && vol > 0 ? vol : undefined,
+      beverage: currentBeverage,
+    });
+    cleanup();
+  };
+  const onDeleteClick = () => {
+    callbacks.onDelete();
+    cleanup();
+  };
+  const onCloseClick = () => {
+    callbacks.onClose();
+    cleanup();
+  };
+  const onOverlayClick = (e: MouseEvent) => {
+    if (e.target === refs.editOverlay) onCloseClick();
+  };
+  const onKey = (e: KeyboardEvent) => {
+    if (e.key === "Escape") onCloseClick();
+  };
+  const cleanup = () => {
+    refs.editOverlay.hidden = true;
+    refs.editForm.removeEventListener("submit", onSubmit);
+    refs.eDelete.removeEventListener("click", onDeleteClick);
+    refs.editClose.removeEventListener("click", onCloseClick);
+    refs.editOverlay.removeEventListener("click", onOverlayClick);
+    document.removeEventListener("keydown", onKey);
+  };
+  refs.editForm.addEventListener("submit", onSubmit);
+  refs.eDelete.addEventListener("click", onDeleteClick);
+  refs.editClose.addEventListener("click", onCloseClick);
+  refs.editOverlay.addEventListener("click", onOverlayClick);
+  document.addEventListener("keydown", onKey);
 };
 
 export const showProfileForm = (refs: DomRefs, profile: Profile | null): void => {

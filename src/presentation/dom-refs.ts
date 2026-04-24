@@ -46,4 +46,12 @@ export const collectDomRefs = () => ({
   log: $("log"),
   logList: $<HTMLUListElement>("log-list"),
   undoBtn: $<HTMLButtonElement>("undo-btn"),
+
+  editOverlay: $("edit-overlay"),
+  editClose: $<HTMLButtonElement>("edit-close"),
+  editForm: $<HTMLFormElement>("edit-form"),
+  eTime: $<HTMLInputElement>("e-time"),
+  eVolume: $<HTMLInputElement>("e-volume"),
+  eBeverageTabs: $("e-beverage-tabs"),
+  eDelete: $<HTMLButtonElement>("e-delete"),
 });
